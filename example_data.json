@@ -1,0 +1,56 @@
+{
+  "NAME": "Jon Hidalgo",
+  "TITLE": "Senior Automation & AI Specialist | AI Workflows | Ex-Founder",
+  "LOCATION": "Madrid, Spain",
+  "PHONE": "+34 671 26 34 54",
+  "EMAIL": "jonhidalgofdev@gmail.com",
+  "LINKEDIN": "linkedin.com/in/jon-hidalgo-nunez/",
+  "PROFESSIONAL_SUMMARY": "Senior Automation & AI Specialist with 6+ years building end-to-end GTM workflows using Make and CRM automation. Experienced commercial Salesperson, HubSpot and enrichments through reliable AI-driven data flows. Focused on eliminating manual work across Revenue and Marketing teams through scalable automation and strong documentation.",
+  "KEY_ACHIEVEMENTS": [
+    "*Reduced lead-to-outreach time by 40%* by building multi-scenario Make workflows combining Clay enrichment, AI agents, and Salesforce scoring across 1000+ records.",
+    "*Generated 8,000+ qualified outbound accounts* by scraping competitor client lists and orchestrating enrichment + routing through Make, Clay, and HubSpot across 20+ competitors."
+  ],
+  "TECHNICAL_STACK": [
+    "Automation Platforms: Make (Expert), n8n (Advanced), Zapier",
+    "GTM Systems: Salesforce, HubSpot, Salesloft, Clay, Shopify APIs",
+    "AI & Workflow Intelligence: OpenAI/Anthropic APIs, Prompt Engineering, Agentic Automations",
+    "Technical Skills: REST APIs, Webhooks, JSON, Regex, SQL, Python",
+    "Documentation & Process: Notion, Miro, Airtable"
+  ],
+  "EXPERIENCE": [
+    {
+      "COMPANY": "BOLDER GROUP",
+      "JOB_LOCATION": "Madrid, Spain",
+      "POSITION": "Data & AI Engineer",
+      "TIME": "Feb 2025 - Present",
+      "DESCRIPTION": [
+        "Saved 15+ hours/week for Marketing and BD by building production-grade Make + Python automations that eliminated manual enrichment, routing, and CRM busywork.",
+        "Accelerated lead prioritization by orchestrating AI scoring workflows in Make using Clay intent signals, API integrations, and automated validation.",
+        "Improved workflow scalability and reliability by documenting automation playbooks in Notion, mapping systems in Miro, and standardizing error-handling across scenarios."
+      ]
+    },
+    {
+      "COMPANY": "DEFAULT CLUB",
+      "JOB_LOCATION": "Madrid, Spain",
+      "POSITION": "Founder & Technical Lead",
+      "TIME": "Sep 2018 - Nov 2024",
+      "DESCRIPTION": [
+        "Scaled an e-commerce business to 50,000+ customers by building automation-first operations with Make + n8n across acquisition, fulfillment, and lifecycle workflows.",
+        "Increased repeat purchase rate by 15% by deploying automated post-purchase and retention workflows in Make triggered by behavioral signals.",
+        "Eliminated 10+ hours/week of catalog work by automating product creation, inventory updates, and internal tool sync through n8n orchestration with Shopify APIs."
+      ]
+    }
+  ],
+  "PROJECTS": [
+    {
+      "ORG": "European Commission",
+      "POSITION": "Erasmus+ Program Lead",
+      "TIME": "2014 - 2018",
+      "DESCRIPTION": [
+        "Led international coordination for 5 cross-border programs, managing logistics, budgeting, and stakeholder alignment across multiple EU member states."
+      ]
+    }
+  ],
+  "EDUCATION": "BSc in Computer Engineering (UOC), Coursework in Science, Management and Service Engineering (URJC).",
+  "LANGUAGES": "Spanish (Native), English (Full Professional Proficiency)"
+}
