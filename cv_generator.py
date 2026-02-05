@@ -443,6 +443,7 @@ Examples:
     parser.add_argument('--template', required=True, help='Path to the CV template file')
     parser.add_argument('--output', required=True, help='Path to save the filled CV')
     parser.add_argument('--data', help='Path to JSON file with replacement data')
+    parser.add_argument('--pdf', action='store_true', help='Also generate a PDF file from the DOCX')
     
     args = parser.parse_args()
     
@@ -468,6 +469,18 @@ Examples:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         filled_doc.save(str(output_path))
         print(f"✓ CV filled successfully: {args.output}")
+
+        if args.pdf:
+            try:
+                from docx2pdf import convert
+                pdf_output_path = output_path.with_suffix('.pdf')
+                convert(str(output_path), str(pdf_output_path))
+                print(f"✓ PDF generated successfully: {pdf_output_path}")
+            except Exception as e:
+                print(f"Error generating PDF: {e}", file=sys.stderr)
+                print("Please ensure you have LibreOffice installed and accessible in your system's PATH.", file=sys.stderr)
+                sys.exit(1)
+
     except Exception as e:
         print(f"Error writing output: {e}", file=sys.stderr)
         sys.exit(1)

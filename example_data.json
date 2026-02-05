@@ -1,53 +1,53 @@
 {
   "NAME": "Jon Hidalgo",
-  "TITLE": "Senior Automation & AI Specialist | AI Workflows | Ex-Founder",
+  "TITLE": "Senior Agentic AI & Quality Automation Engineer | LLMOps | Ex-Founder",
   "LOCATION": "Madrid, Spain",
   "PHONE": "+34 671 26 34 54",
-  "EMAIL": "jonhidalgofdev@gmail.com",
+  "EMAIL": "jonhidalgodev@gmail.com",
   "LINKEDIN": "linkedin.com/in/jon-hidalgo-nunez/",
-  "PROFESSIONAL_SUMMARY": "Senior Automation & AI Specialist with 6+ years building end-to-end GTM workflows using Make and CRM automation. Experienced commercial Salesperson, HubSpot and enrichments through reliable AI-driven data flows. Focused on eliminating manual work across Revenue and Marketing teams through scalable automation and strong documentation.",
+  "PROFESSIONAL_SUMMARY": "Senior QA Engineer with 6+ years specializing in *Agentic AI reliability*. Expert in LLM evaluation, hallucination mitigation, and *MLOps/LLMOps orchestration* on Azure. Focused on building *compliant, high-performance AI infrastructure* through automated safety guardrails and robust data pipelines.",
   "KEY_ACHIEVEMENTS": [
-    "*Reduced lead-to-outreach time by 40%* by building multi-scenario Make workflows combining Clay enrichment, AI agents, and Salesforce scoring across 1000+ records.",
-    "*Generated 8,000+ qualified outbound accounts* by scraping competitor client lists and orchestrating enrichment + routing through Make, Clay, and HubSpot across 20+ competitors."
+    "Design and execution of an *Agentic AI orchestration framework* for 100k+ records, implementing automated validation logic that ensured 99.9% data integrity and performance across enterprise pipelines.",
+    "Led the technical evaluation of a *high-intent intelligence engine*, utilizing LLM-as-a-judge frameworks and safety guardrails to generate a database of 8,000+ highly accurate, production-ready accounts."
   ],
   "TECHNICAL_STACK": [
-    "*Automation Platforms:* Make (Expert), n8n (Advanced), Zapier",
-    "*GTM Systems:* Salesforce, HubSpot, Salesloft, Clay, Shopify APIs",
-    "*AI & Workflow Intelligence:* OpenAI/Anthropic APIs, Prompt Engineering, Agentic Automations",
-    "*Technical Skills:* REST APIs, Webhooks, JSON, Regex, SQL, Python",
-    "*Documentation & Process:* Notion, Miro, Airtable"
+    "*Agentic AI & Quality:* Evaluation frameworks (RAGAS/G-Eval), prompt testing, hallucination mitigation, safety guardrails, model drift monitoring",
+    "*Cloud & Platforms:* Azure AI Foundry, Databricks, MLOps/LLMOps workflows, CI/CD pipelines",
+    "*Automation & Engineering:* Python (PyTest), Make/n8n, REST APIs, Microservices, SQL",
+    "*System Design:* Multi-agent orchestration, API-based integrations, Enterprise data products",
+    "*Methodology:* Agile/Scrum, Extreme Ownership, SOP Documentation (Notion/Miro)"
   ],
   "EXPERIENCE": [
     {
       "COMPANY": "BOLDER GROUP",
       "JOB_LOCATION": "Madrid, Spain",
-      "POSITION": "Data & AI Engineer",
+      "POSITION": "Senior Agentic AI & Quality Engineer",
       "TIME": "Feb 2025 - Present",
       "DESCRIPTION": [
-        "Saved 15+ hours/week for Marketing and BD by building production-grade Make + Python automations that eliminated manual enrichment, routing, and CRM busywork.",
-        "Accelerated lead prioritization by orchestrating AI scoring workflows in Make using Clay intent signals, API integrations, and automated validation.",
-        "Improved workflow scalability and reliability by documenting automation playbooks in Notion, mapping systems in Miro, and standardizing error-handling across scenarios."
+        "Defining and executing *end-to-end QA strategies* for Agentic AI workflows, focusing on prompt reliability, model evaluation, and hallucination reduction.",
+        "Productionizing AI orchestration pipelines within *Databricks*, integrating automated testing for APIs and platform services into CI/CD workflows.",
+        "Collaborating with Data Scientists and AI Governance stakeholders to ensure the *safe deployment* of agentic features, focusing on model drift and output accuracy."
       ]
     },
     {
       "COMPANY": "DEFAULT CLUB",
       "JOB_LOCATION": "Madrid, Spain",
-      "POSITION": "Founder & Technical Lead",
+      "POSITION": "Founder & Technical Systems Architect",
       "TIME": "Sep 2018 - Nov 2024",
       "DESCRIPTION": [
-        "Scaled an e-commerce business to 50,000+ customers by building automation-first operations with Make + n8n across acquisition, fulfillment, and lifecycle workflows.",
-        "Increased repeat purchase rate by 15% by deploying automated post-purchase and retention workflows in Make triggered by behavioral signals.",
-        "Eliminated 10+ hours/week of catalog work by automating product creation, inventory updates, and internal tool sync through n8n orchestration with Shopify APIs."
+        "Architected a *trustworthy AI-driven ecosystem* for 50,000+ users, prioritizing system reliability and data accuracy through automated visual orchestration.",
+        "Implemented robust *error-handling and regression testing* for complex automation workflows, maintaining a 99.9% uptime for business-critical operations.",
+        "Directed the transition from rapid prototypes to *production-grade infrastructure*, ensuring all data-driven applications remained performant and scalable."
       ]
     }
   ],
   "PROJECTS": [
     {
       "ORG": "European Commission",
-      "POSITION": "Erasmus+ Program Lead",
+      "POSITION": "Erasmus+ Program Lead (Stakeholder & Compliance)",
       "TIME": "2014 - 2018",
       "DESCRIPTION": [
-        "Led international coordination for 5 cross-border programs, managing logistics, budgeting, and stakeholder alignment across multiple EU member states."
+        "Managed international stakeholder alignment and *regulatory compliance* for cross-border programs, ensuring quality standards were met across diverse European entities."
       ]
     }
   ],
