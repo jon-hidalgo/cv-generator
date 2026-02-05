@@ -53,6 +53,70 @@ def load_data_from_json(json_path):
         sys.exit(1)
 
 
+def _replace_placeholder_in_runs(paragraph, placeholder, replacement_value):
+    """
+    Replaces a specific placeholder string within a paragraph's runs,
+    preserving existing run formatting. This function intelligently handles
+    placeholders that may span across multiple runs by reconstructing the
+    affected runs while maintaining their original formatting.
+    """
+    segments = [] # List of (text_content, original_run_properties_dict)
+    
+    # Collect all existing run data (text and properties)
+    for run in paragraph.runs:
+        segments.append({
+            'text': run.text,
+            'bold': run.bold,
+            'italic': run.italic,
+            'underline': run.underline,
+            'name': run.font.name,
+            'size': run.font.size,
+            'color': run.font.color.rgb
+        })
+
+    # Prepare for replacement
+    new_segments_data = []
+    found_replacement = False
+
+    for segment in segments:
+        text_to_process = segment['text']
+        
+        if placeholder in text_to_process:
+            found_replacement = True
+            parts = text_to_process.split(placeholder)
+            
+            if parts[0]:
+                new_segments_data.append(dict(segment, text=parts[0]))
+            
+            new_segments_data.append(dict(segment, text=replacement_value))
+            
+            if parts[1:]:
+                new_segments_data.append(dict(segment, text="".join(parts[1:])))
+        else:
+            new_segments_data.append(segment)
+
+    if not found_replacement:
+        return # No replacement occurred
+
+    # Clear all existing runs in the paragraph
+    for run in paragraph.runs:
+        run._element.getparent().remove(run._element)
+    
+    # Add new runs based on the `new_segments_data`
+    for new_segment in new_segments_data:
+        if not new_segment['text']:
+            continue
+        run = paragraph.add_run(new_segment['text'])
+        run.bold = new_segment.get('bold', False)
+        run.italic = new_segment.get('italic', False)
+        run.underline = new_segment.get('underline', False)
+        if new_segment.get('name'):
+            run.font.name = new_segment['name']
+        if new_segment.get('size'):
+            run.font.size = new_segment['size']
+        if new_segment.get('color'):
+            run.font.color.rgb = new_segment['color']
+            
 def parse_markdown_formatting(text):
     """
     Parse markdown-style formatting in text.
@@ -279,16 +343,18 @@ def fill_docx_template(doc, data):
     # Need to re-list paragraphs as they might have changed due to block processing
     for para in doc.paragraphs:
         for key, value in data.items():
-            if not isinstance(value, (list, dict)): # Only fill simple placeholders
-                set_paragraph_text_with_formatting(para, para.text.replace(f"{{{{{key}}}}}", str(value)), para.runs[0].font if para.runs else None)
+            placeholder = f"{{{{{key}}}}}"
+            if not isinstance(value, (list, dict)) and placeholder in para.text: # Only fill simple placeholders
+                _replace_placeholder_in_runs(para, placeholder, str(value))
 
     for table in doc.tables:
         for row in table.rows:
             for cell in row.cells:
                 for para in cell.paragraphs:
                     for key, value in data.items():
-                        if not isinstance(value, (list, dict)): # Only fill simple placeholders
-                            set_paragraph_text_with_formatting(para, para.text.replace(f"{{{{{key}}}}}", str(value)), para.runs[0].font if para.runs else None)
+                        placeholder = f"{{{{{key}}}}}"
+                        if not isinstance(value, (list, dict)) and placeholder in para.text: # Only fill simple placeholders
+                            _replace_placeholder_in_runs(para, placeholder, str(value))
     
     return doc
 
