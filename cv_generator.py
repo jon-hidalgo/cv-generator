@@ -106,34 +106,48 @@ def _replace_placeholder_in_runs(paragraph, placeholder, replacement_value):
     for new_segment in new_segments_data:
         if not new_segment['text']:
             continue
-        run = paragraph.add_run(new_segment['text'])
-        run.bold = new_segment.get('bold', False)
-        run.italic = new_segment.get('italic', False)
-        run.underline = new_segment.get('underline', False)
-        if new_segment.get('name'):
-            run.font.name = new_segment['name']
-        if new_segment.get('size'):
-            run.font.size = new_segment['size']
-        if new_segment.get('color'):
-            run.font.color.rgb = new_segment['color']
+        
+        # Parse markdown within the text content of the new_segment
+        markdown_parts = parse_markdown_formatting(new_segment['text'])
+        
+        for part_text, is_markdown_bold in markdown_parts:
+            run = paragraph.add_run(part_text)
+            
+            # Apply inherited template formatting
+            run.bold = new_segment.get('bold', False)
+            run.italic = new_segment.get('italic', False)
+            run.underline = new_segment.get('underline', False)
+            if new_segment.get('name'):
+                run.font.name = new_segment['name']
+            if new_segment.get('size'):
+                run.font.size = new_segment['size']
+            if new_segment.get('color'):
+                run.font.color.rgb = new_segment['color']
+            
+            # Apply markdown bolding (overriding inherited bold if markdown says it's bold)
+            if is_markdown_bold:
+                run.bold = True
             
 def parse_markdown_formatting(text):
     """
     Parse markdown-style formatting in text.
     Returns a list of tuples: (text, is_bold)
     
-    Example: "*bold* text" -> [("bold", True), (" text", False)]
+    Example: "**bold** *also bold* text" -> [("bold", True), (" ", False), ("also bold", True), (" text", False)]
     """
     parts = []
-    pattern = r'\*([^*]+)\*'
+    # Pattern to match **text** or *text*, using a backreference `\1` to ensure closing markers match opening ones.
+    pattern = r'(\*{1,2})(.+?)\1'
     last_end = 0
     
     for match in re.finditer(pattern, text):
         # Add text before the bold part
         if match.start() > last_end:
             parts.append((text[last_end:match.start()], False))
-        # Add the bold part
-        parts.append((match.group(1), True))
+        
+        # The actual matched text to be bolded is in group 2
+        bold_text = match.group(2)
+        parts.append((bold_text, True))
         last_end = match.end()
     
     # Add remaining text
@@ -154,15 +168,15 @@ def set_paragraph_text_with_formatting(paragraph, text, run_font_properties=None
     for i, (part_text, is_bold) in enumerate(parts):
         run = paragraph.add_run(part_text)
         if run_font_properties:
-            run.bold = run_font_properties.bold
-            run.italic = run_font_properties.italic
-            run.underline = run_font_properties.underline
-            if run_font_properties.name:
-                run.font.name = run_font_properties.name
-            if run_font_properties.size:
-                run.font.size = run_font_properties.size
-            if run_font_properties.color.rgb:
-                run.font.color.rgb = run_font_properties.color.rgb
+            run.bold = run_font_properties.get('bold', False)
+            run.italic = run_font_properties.get('italic', False)
+            run.underline = run_font_properties.get('underline', False)
+            if run_font_properties.get('name'):
+                run.font.name = run_font_properties['name']
+            if run_font_properties.get('size'):
+                run.font.size = run_font_properties['size']
+            if run_font_properties.get('color'):
+                run.font.color.rgb = run_font_properties['color']
         run.bold = is_bold # Apply or override bold based on markdown
 
 
@@ -244,29 +258,14 @@ def fill_docx_template(doc, data):
                 # Copy properties using docx.oxml elements for robustness
                 new_p._p = deepcopy(template_para._p)
                 
-                # Replace placeholders in the copied paragraph
-                current_para_content = "".join([run.text for run in template_para.runs])
-                filled_content_with_placeholders = current_para_content # Start with template text
-                
+                # Replace placeholders in the copied paragraph by directly calling _replace_placeholder_in_runs
                 for key, value in item_data.items():
                     placeholder = f"{{{{{key}}}}}"
-                    if placeholder in filled_content_with_placeholders:
-                        # Convert list values to newline separated string for initial replacement
-                        # This will be further processed by expand_list_placeholders
-                        if isinstance(value, list):
-                            # This should not happen with our flattened data structure for repeating blocks
-                            # But as a fallback, join them
-                            filled_content_with_placeholders = filled_content_with_placeholders.replace(placeholder, "\n".join(value))
-                        else:
-                            filled_content_with_placeholders = filled_content_with_placeholders.replace(placeholder, str(value))
-                
-                # Set text and reapply formatting
-                # Note: `set_paragraph_text_with_formatting` clears all runs and re-adds them.
-                # If we want to preserve complex run-level formatting from template_para,
-                # we'd need a more intricate copy or run-by-run replacement.
-                # For now, we assume primary formatting is at paragraph level (style, alignment, tab stops)
-                # and font properties are consistent within the runs of a template_para.
-                set_paragraph_text_with_formatting(new_p, filled_content_with_placeholders, template_para.runs[0].font if template_para.runs else None)
+                    if isinstance(value, list):
+                        # For list values, join them with newlines and apply _replace_placeholder_in_runs
+                        _replace_placeholder_in_runs(new_p, placeholder, "\n".join(map(str, value)))
+                    else:
+                        _replace_placeholder_in_runs(new_p, placeholder, str(value))
 
                 generated_paragraph_elements.append(new_p._p)
         
@@ -307,14 +306,19 @@ def fill_docx_template(doc, data):
                         # Get original paragraph style and properties
                         original_style = para.style
                         original_pPr_element = deepcopy(para._p.pPr) if para._p.pPr is not None else OxmlElement('w:pPr')
-                        original_font_props = para.runs[0].font if para.runs else None
-                        
-                        # Replace the placeholder paragraph with the first item
-                        # Need to clear existing runs and add new ones for the first item
+                        original_font_props = None
+                        # Find the font properties of the run containing the placeholder
                         for run in para.runs:
-                            run.clear()
-                        set_paragraph_text_with_formatting(para, str(list_items[0]), original_font_props)
+                            if placeholder in run.text:
+                                original_font_props = {
+                                    'bold': run.bold, 'italic': run.italic, 'underline': run.underline,
+                                    'name': run.font.name, 'size': run.font.size, 'color': run.font.color.rgb
+                                }
+                                break
 
+                        # Replace the placeholder in the existing paragraph with the first item
+                        _replace_placeholder_in_runs(para, placeholder, str(list_items[0]))
+                        
                         para.style = original_style # Reapply original style
                         
                         # Clear existing pPr if any and re-append the original pPr element
@@ -333,11 +337,12 @@ def fill_docx_template(doc, data):
                             new_para._p.insert(0, deepcopy(original_pPr_element))
                             
                             set_paragraph_text_with_formatting(new_para, str(item), original_font_props)
+
                             current_anchor_elem.addnext(new_para._p)
                             current_anchor_elem = new_para._p
                     else:
                         # If list is empty, remove placeholder
-                        set_paragraph_text_with_formatting(para, para.text.replace(placeholder, ""))
+                        _replace_placeholder_in_runs(para, placeholder, "") # Replace with empty string
     
     # Finally, fill any remaining simple top-level placeholders
     # Need to re-list paragraphs as they might have changed due to block processing
