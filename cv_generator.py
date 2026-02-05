@@ -254,20 +254,60 @@ def fill_docx_template(doc, data):
         generated_paragraph_elements = []
         for item_data in data[block_name]:
             for template_para in template_paras:
-                new_p = doc.add_paragraph()
-                # Copy properties using docx.oxml elements for robustness
-                new_p._p = deepcopy(template_para._p)
-                
-                # Replace placeholders in the copied paragraph by directly calling _replace_placeholder_in_runs
+                # Check if this paragraph contains a placeholder that corresponds to a list
+                list_key_in_para = None
                 for key, value in item_data.items():
-                    placeholder = f"{{{{{key}}}}}"
-                    if isinstance(value, list):
-                        # For list values, join them with newlines and apply _replace_placeholder_in_runs
-                        _replace_placeholder_in_runs(new_p, placeholder, "\n".join(map(str, value)))
-                    else:
-                        _replace_placeholder_in_runs(new_p, placeholder, str(value))
+                    if f"{{{{{key}}}}}" in template_para.text and isinstance(value, list):
+                        list_key_in_para = key
+                        break
+                
+                if list_key_in_para:
+                    # This paragraph is a template for a list expansion
+                    list_items = item_data[list_key_in_para]
+                    placeholder = f"{{{{{list_key_in_para}}}}}"
 
-                generated_paragraph_elements.append(new_p._p)
+                    # Use the first item to populate the initial paragraph
+                    first_item_para = doc.add_paragraph()
+                    first_item_para._p = deepcopy(template_para._p)
+                    
+                    if list_items:
+                        _replace_placeholder_in_runs(first_item_para, placeholder, str(list_items[0]))
+                    else:
+                        _replace_placeholder_in_runs(first_item_para, placeholder, "") # Handle empty list
+                    
+                    # Also replace any other non-list placeholders in this paragraph
+                    for key, value in item_data.items():
+                        if key != list_key_in_para and not isinstance(value, list):
+                            _replace_placeholder_in_runs(first_item_para, f"{{{{{key}}}}}", str(value))
+                    
+                    generated_paragraph_elements.append(first_item_para._p)
+
+                    # Now, add subsequent list items as new paragraphs
+                    if list_items and len(list_items) > 1:
+                        original_font_props = None
+                        for run in first_item_para.runs:
+                            # A bit of a heuristic to find the run to copy style from
+                            if str(list_items[0]) in run.text: 
+                                original_font_props = {
+                                    'bold': run.bold, 'italic': run.italic, 'underline': run.underline,
+                                    'name': run.font.name, 'size': run.font.size, 'color': run.font.color.rgb
+                                }
+                                break
+                        
+                        for item in list_items[1:]:
+                            new_list_item_para = doc.add_paragraph()
+                            new_list_item_para.style = first_item_para.style
+                            new_list_item_para._p.insert(0, deepcopy(first_item_para._p.pPr) if first_item_para._p.pPr is not None else OxmlElement('w:pPr'))
+                            set_paragraph_text_with_formatting(new_list_item_para, str(item), original_font_props)
+                            generated_paragraph_elements.append(new_list_item_para._p)
+                else:
+                    # This paragraph does not contain a list placeholder, process as normal
+                    new_p = doc.add_paragraph()
+                    new_p._p = deepcopy(template_para._p)
+                    for key, value in item_data.items():
+                        if not isinstance(value, list):
+                            _replace_placeholder_in_runs(new_p, f"{{{{{key}}}}}", str(value))
+                    generated_paragraph_elements.append(new_p._p)
         
         # Insert all generated paragraphs after the anchor element
         # If anchor_element is None, it means the opening_para was the first in the document
@@ -296,8 +336,7 @@ def fill_docx_template(doc, data):
         for key in data:
             if isinstance(data[key], list) and (
                (key == 'KEY_ACHIEVEMENTS' and f"{{{{{key}}}}}" in para.text) or
-               (key == 'TECHNICAL_STACK' and f"{{{{{key}}}}}" in para.text) or
-               (key == 'DESCRIPTION' and f"{{{{{key}}}}}" in para.text)
+               (key == 'TECHNICAL_STACK' and f"{{{{{key}}}}}" in para.text)
             ):
                 placeholder = f"{{{{{key}}}}}"
                 if placeholder in para.text:
