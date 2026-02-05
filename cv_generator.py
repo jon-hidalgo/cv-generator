@@ -206,6 +206,26 @@ def add_bullet_style(paragraph_element):
         numPr.append(numId)
 
 
+def remove_trailing_empty_paragraphs(document):
+    """
+    Removes trailing empty paragraphs from the end of the document.
+    This often prevents an unwanted blank page at the end of the generated docx.
+    """
+    paragraphs = document.paragraphs
+    # Iterate from the end of the document backwards
+    for i in range(len(paragraphs) - 1, -1, -1):
+        paragraph = paragraphs[i]
+        # Check if the paragraph is empty (no text and no runs or only contains whitespace)
+        # Using _element.xml to check for more robust emptiness (e.g., contains only <w:br/>)
+        # However, a simple text check is usually sufficient for user-created empty paragraphs
+        if not paragraph.text.strip() and not paragraph.runs:
+            # If it's the last paragraph and empty, remove it
+            if paragraph._element.getparent() is not None:
+                paragraph._element.getparent().remove(paragraph._element)
+        else:
+            # Found a non-empty paragraph, stop removing
+            break
+
 def fill_docx_template(doc, data):
     """Fill DOCX template placeholders with data values, supporting markdown formatting and repeating blocks."""
     
@@ -438,6 +458,9 @@ Examples:
     
     # Fill the template
     filled_doc = fill_docx_template(template_doc, data)
+
+    # Remove any trailing empty paragraphs to prevent extra blank pages
+    remove_trailing_empty_paragraphs(filled_doc)
     
     # Output result
     try:
