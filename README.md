@@ -27,6 +27,15 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Command-line Options
+
+*   `--template <path>`: Path to the CV template file (required).
+*   `--output <path>`: Path to save the filled CV (required).
+*   `--data <path>`: Path to JSON file with replacement data.
+*   `--pdf`: If present, also generates a PDF file from the DOCX.
+*   `--role <string>`: Specify the role for organizing output files.
+*   `--company <string>`: Specify the company name for organizing output files.
+
 ### Using JSON data file
 ```bash
 .venv/bin/python3 cv_generator.py --template example_template.docx --output my_cv.docx --data example_data.json
@@ -40,6 +49,11 @@ pip install -r requirements.txt
 ### Mix JSON and command-line (command-line takes precedence)
 ```bash
 .venv/bin/python3 cv_generator.py --template example_template.docx --output my_cv.docx --data example_data.json -D NAME="Jane Smith"
+```
+
+### Generating PDF with role and company specific output
+```bash
+.venv/bin/python3 cv_generator.py --template example_template.docx --output my_cv.docx --data example_data.json --pdf --role "QA Engineer" --company "Nationale Nederlanden Group"
 ```
 
 ## Template Format

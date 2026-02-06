@@ -19,7 +19,7 @@ from copy import deepcopy
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.shared import Pt, RGBColor
-
+import subprocess # Re-import subprocess for direct soffice call
 
 def load_template(template_path):
     """Load the template file (supports .txt and .docx)."""
@@ -433,7 +433,7 @@ Examples:
   python cv_generator.py --template cv_template.txt --output cv_filled.txt --data data.json
   
   # Using command-line arguments
-  python cv_generator.py --template cv_template.txt --output cv_filled.txt --name "John Doe" --email "john@example.com"
+  python cv_generator.py --template cv_generator.py --template cv_filled.txt --name "John Doe" --email "john@example.com"
   
   # Mix JSON file and command-line arguments (command-line takes precedence)
   python cv_generator.py --template cv_template.txt --output cv_filled.txt --data data.json --name "Jane Smith"
@@ -444,6 +444,8 @@ Examples:
     parser.add_argument('--output', required=True, help='Path to save the filled CV')
     parser.add_argument('--data', help='Path to JSON file with replacement data')
     parser.add_argument('--pdf', action='store_true', help='Also generate a PDF file from the DOCX')
+    parser.add_argument('--role', help='Specify the role for organizing output files')
+    parser.add_argument('--company', help='Specify the company name for organizing output files')
     
     args = parser.parse_args()
     
@@ -465,20 +467,88 @@ Examples:
     
     # Output result
     try:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        filled_doc.save(str(output_path))
-        print(f"✓ CV filled successfully: {args.output}")
+        output_path_base = Path(args.output)
+        
+        if args.role and args.company:
+            # Save to a dedicated "CVs" folder in the user's Documents directory as a workaround for macOS sandboxing
+            base_cv_dir = Path.home() / "Documents" / "CVs"
+            role_dir = base_cv_dir / args.role.replace(" ", "-")
+            company_dir = role_dir / args.company.replace(" ", "-")
+            
+            output_dir = company_dir
+            output_dir.mkdir(parents=True, exist_ok=True, mode=0o755)
+            
+            # Construct the new filename based on role
+            formatted_role = args.role.replace(" ", "-")
+            new_file_name = f"Jon-Hidalgo-CV-{formatted_role}{output_path_base.suffix}"
+            output_path = output_dir / new_file_name
+        elif args.role:
+            # If only --role is provided, use the same CVs directory structure
+            base_cv_dir = Path.home() / "Documents" / "CVs"
+            formatted_role = args.role.replace(" ", "-")
+            new_file_name = f"Jon-Hidalgo-CV-{formatted_role}{output_path_base.suffix}"
+            output_path = base_cv_dir / new_file_name
+            output_path.parent.mkdir(parents=True, exist_ok=True) # Ensure parent directory exists
+        else:
+            # If --role or --company not provided, use original output path logic
+            output_dir = output_path_base.parent
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = output_path_base
+        
+        # Determine the final output paths for DOCX and PDF
+        final_docx_output_path = output_path
+        
+        # Save the DOCX file
+        filled_doc.save(str(final_docx_output_path))
+        print(f"✓ CV filled successfully: {final_docx_output_path}")
 
         if args.pdf:
             try:
-                from docx2pdf import convert
-                pdf_output_path = output_path.with_suffix('.pdf')
-                convert(str(output_path), str(pdf_output_path))
-                print(f"✓ PDF generated successfully: {pdf_output_path}")
+                final_pdf_output_path = output_path.with_suffix('.pdf')
+                
+                # Construct the soffice command based on the successful manual execution
+                soffice_command = [
+                    "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+                    "--headless",
+                    "--nologo",
+                    "--nolockcheck",
+                    "--norestore",
+                    "--nodefault",
+                    "--convert-to", "pdf",
+                    str(final_docx_output_path), # Input from the final DOCX path
+                    "--outdir", str(final_pdf_output_path.parent) # Output to the final directory
+                ]
+
+                # Run soffice command
+                result = subprocess.run(soffice_command, capture_output=True, text=True, check=True)
+                
+                # Verify that the PDF was created
+                if final_pdf_output_path.exists():
+                    print(f"✓ PDF generated successfully: {final_pdf_output_path}")
+                else:
+                    # Look for the generated file as soffice might name it differently
+                    generated_pdf_name = final_docx_output_path.with_suffix('.pdf').name
+                    possible_pdf_path = final_pdf_output_path.parent / generated_pdf_name
+                    if possible_pdf_path.exists():
+                         print(f"✓ PDF generated successfully: {possible_pdf_path}")
+                    else:
+                        print("Error: PDF conversion reported success, but the output file was not found.", file=sys.stderr)
+                        if result.stderr:
+                             print(f"soffice stderr: {result.stderr}", file=sys.stderr)
+                        sys.exit(1)
+            
+            except FileNotFoundError:
+                print("Error: 'soffice' (LibreOffice executable) not found at /Applications/LibreOffice.app/Contents/MacOS/soffice.", file=sys.stderr)
+                print("Please ensure LibreOffice is installed in the standard Applications directory.", file=sys.stderr)
+                sys.exit(1)
+            except subprocess.CalledProcessError as e:
+                print(f"Error generating PDF with LibreOffice: {e}", file=sys.stderr)
+                print(f"soffice stdout: {e.stdout}", file=sys.stderr)
+                print(f"soffice stderr: {e.stderr}", file=sys.stderr)
+                print("Please ensure LibreOffice is correctly installed and accessible.", file=sys.stderr)
+                sys.exit(1)
             except Exception as e:
                 print(f"Error generating PDF: {e}", file=sys.stderr)
-                print("Please ensure you have LibreOffice installed and accessible in your system's PATH.", file=sys.stderr)
                 sys.exit(1)
 
     except Exception as e:
